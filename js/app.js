@@ -48,7 +48,16 @@ function handleSession(session) {
 
 /* ---------- イベント登録 ---------- */
 function bindEvents() {
-  $("btn-login").addEventListener("click", login);
+  $("btn-auth").addEventListener("click", submitAuth);
+  $("btn-switch-mode").addEventListener("click", () =>
+    setAuthMode(authMode === "login" ? "signup" : "login")
+  );
+  $("login-email").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); $("login-password").focus(); }
+  });
+  $("login-password").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); submitAuth(); }
+  });
   $("btn-logout").addEventListener("click", logout);
   $("btn-back").addEventListener("click", goBack);
 
@@ -90,14 +99,51 @@ function bindEvents() {
   });
 }
 
-/* ---------- 認証 ---------- */
-async function login() {
-  const redirectTo = window.location.href.split("#")[0];
-  const { error } = await supa.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo },
-  });
-  if (error) toast("ログインに失敗しました：" + error.message);
+/* ---------- 認証（メールアドレス＋パスワード） ---------- */
+let authMode = "login"; // "login" または "signup"
+
+function setAuthMode(m) {
+  authMode = m;
+  $("btn-auth").textContent = m === "login" ? "ログイン" : "登録してはじめる";
+  $("login-password").setAttribute(
+    "autocomplete",
+    m === "login" ? "current-password" : "new-password"
+  );
+  $("switch-label").textContent =
+    m === "login" ? "はじめての方は" : "登録済みの方は";
+  $("btn-switch-mode").textContent = m === "login" ? "新規登録" : "ログイン";
+}
+
+async function submitAuth() {
+  const email = $("login-email").value.trim();
+  const password = $("login-password").value;
+  if (!email) { toast("メールアドレスを入力してください"); return; }
+  if (password.length < 6) { toast("パスワードは6文字以上にしてください"); return; }
+
+  showLoading(true);
+  try {
+    if (authMode === "signup") {
+      const { data, error } = await supa.auth.signUp({ email, password });
+      if (error) throw error;
+      if (!data.session) {
+        showLoading(false);
+        toast("登録しました。確認メールが必要な設定になっています");
+        return;
+      }
+    } else {
+      const { error } = await supa.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+    }
+    showLoading(false);
+    // 成功すると onAuthStateChange が画面を切り替えます
+  } catch (err) {
+    showLoading(false);
+    const m = err.message || "";
+    if (m.includes("Invalid login")) toast("メールアドレスかパスワードが違います");
+    else if (m.includes("already registered")) toast("このメールは登録済みです。「ログイン」を選んでください");
+    else if (m.toLowerCase().includes("password")) toast("パスワードは6文字以上にしてください");
+    else toast("うまくいきませんでした：" + m);
+  }
 }
 
 async function logout() {

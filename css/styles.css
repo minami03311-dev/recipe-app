@@ -70,8 +70,16 @@ input, textarea, button { font-family: inherit; font-size: inherit; color: inher
   transition: transform .08s ease, box-shadow .2s ease;
 }
 .btn-google:active { transform: scale(.98); }
-.g-signin { display: flex; justify-content: center; min-height: 44px; }
-.login-fallback { display: inline-block; margin-top: 16px; color: var(--text-muted); font-size: 12.5px; }
+.login-form { display: flex; flex-direction: column; gap: 12px; }
+.login-form input {
+  width: 100%; padding: 14px 16px;
+  background: #fff; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); outline: none; text-align: center;
+}
+.login-form input:focus { border-color: var(--primary); }
+.login-submit { margin-top: 4px; }
+.login-switch { margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+.login-switch .link-btn { font-size: 13px; }
 .login-note { margin-top: 18px; font-size: 12px; color: var(--text-muted); }
 
 /* ===== アプリ枠 ===== */
