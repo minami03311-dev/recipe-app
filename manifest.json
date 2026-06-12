@@ -4,7 +4,7 @@
   "description": "あなただけのレシピを集めるアプリ",
   "start_url": "./",
   "scope": "./",
-  "display": "standalone",
+  "display": "browser",
   "orientation": "portrait",
   "background_color": "#f5f2ed",
   "theme_color": "#f5f2ed",
