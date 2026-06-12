@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>レシピ帖</title>
+  <meta name="theme-color" content="#f5f2ed" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="レシピ帖" />
+
+  <!-- フォント（上品な明朝＋読みやすいゴシック） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- ===== ログイン画面 ===== -->
+  <section id="view-login" class="view view-login">
+    <div class="login-card">
+      <div class="login-mark">
+        <img src="icons/icon-192.png" alt="" />
+      </div>
+      <h1 class="login-title">レシピ帖</h1>
+      <p class="login-sub">あなただけの、お気に入りレシピを<br />そっと集めておく場所。</p>
+      <button id="btn-login" class="btn-google">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#EA4335" d="M12 10.8v3.6h5.05c-.22 1.18-.9 2.18-1.9 2.85l3.07 2.38C19.96 18 21 15.3 21 12.18c0-.72-.06-1.4-.18-2.06H12z"/><path fill="#34A853" d="M6.6 14.28l-.69.53-2.45 1.9C5.02 19.6 8.27 21.6 12 21.6c2.7 0 4.96-.9 6.62-2.42l-3.07-2.38c-.86.58-1.96.93-3.55.93-2.73 0-5.05-1.84-5.88-4.32z"/><path fill="#FBBC05" d="M3.46 7.78A9.6 9.6 0 0 0 2.4 12c0 1.5.36 2.92 1.06 4.22l3.14-2.43A5.74 5.74 0 0 1 6.3 12c0-.63.1-1.24.3-1.79L3.46 7.78z"/><path fill="#4285F4" d="M12 6.42c1.53 0 2.9.53 3.98 1.56l2.98-2.98C17.45 3.3 15.19 2.4 12 2.4 8.27 2.4 5.02 4.4 3.46 7.78l3.14 2.43C7.43 7.73 9.27 6.42 12 6.42z"/></svg>
+        <span>Googleでログイン</span>
+      </button>
+      <p class="login-note">※ あなたのレシピは本人だけが見られます</p>
+    </div>
+  </section>
+
+  <!-- ===== アプリ本体 ===== -->
+  <div id="app" class="app hidden">
+
+    <!-- 上部バー -->
+    <header class="appbar">
+      <button id="btn-back" class="appbar-back hidden" aria-label="戻る">‹</button>
+      <h1 id="appbar-title" class="appbar-title">レシピ帖</h1>
+      <button id="btn-logout" class="appbar-logout" aria-label="ログアウト">⏻</button>
+    </header>
+
+    <main class="content">
+
+      <!-- 一覧（ホーム） -->
+      <section id="view-home" class="view">
+        <div id="home-list" class="card-grid"></div>
+        <div id="home-empty" class="empty hidden">
+          <p class="empty-emoji">🍳</p>
+          <p>まだレシピがありません。<br />右下の「＋」から登録してみましょう。</p>
+        </div>
+      </section>
+
+      <!-- 検索 -->
+      <section id="view-search" class="view hidden">
+        <div class="search-bar">
+          <input id="search-input" type="search" placeholder="料理名で検索…" autocomplete="off" />
+        </div>
+        <div class="tagfilter-wrap">
+          <p class="section-label">タグでしぼり込む</p>
+          <div id="search-tags" class="chip-row"></div>
+        </div>
+        <div id="search-list" class="card-grid"></div>
+        <div id="search-empty" class="empty hidden"><p>条件に合うレシピが見つかりません。</p></div>
+      </section>
+
+      <!-- 詳細 -->
+      <section id="view-detail" class="view hidden">
+        <div id="detail-body"></div>
+      </section>
+
+      <!-- 登録・編集 -->
+      <section id="view-form" class="view hidden">
+        <form id="recipe-form" class="form">
+          <label class="field">
+            <span class="field-label">料理名 <em>必須</em></span>
+            <input id="f-title" type="text" required placeholder="例：鶏むね肉のしっとり蒸し" />
+          </label>
+
+          <label class="field">
+            <span class="field-label">写真</span>
+            <div class="image-pick">
+              <div id="f-image-preview" class="image-preview empty">
+                <span>タップして写真を選ぶ</span>
+              </div>
+              <input id="f-image" type="file" accept="image/*" hidden />
+              <button type="button" id="f-image-clear" class="link-btn hidden">写真を削除</button>
+            </div>
+          </label>
+
+          <label class="field">
+            <span class="field-label">材料</span>
+            <textarea id="f-ingredients" rows="6" placeholder="鶏むね肉　1枚&#10;塩　少々&#10;酒　大さじ1"></textarea>
+          </label>
+
+          <label class="field">
+            <span class="field-label">手順</span>
+            <textarea id="f-steps" rows="8" placeholder="1. 鶏むね肉を常温にもどす&#10;2. 塩と酒をふる&#10;3. …"></textarea>
+          </label>
+
+          <div class="field">
+            <span class="field-label">タグ</span>
+            <div id="tag-chips" class="chip-row editable"></div>
+            <input id="f-tag-input" type="text" placeholder="タグを入力して Enter（例：和食）" autocomplete="off" />
+            <div id="tag-suggest" class="tag-suggest"></div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="btn-save" class="btn-primary">保存する</button>
+            <button type="button" id="btn-cancel" class="btn-ghost">キャンセル</button>
+          </div>
+        </form>
+      </section>
+
+    </main>
+
+    <!-- 追加ボタン（ホーム/検索で表示） -->
+    <button id="fab" class="fab" aria-label="新規追加">＋</button>
+
+    <!-- 下部タブ -->
+    <nav id="tabbar" class="tabbar">
+      <button class="tab active" data-tab="home">
+        <span class="tab-ico">🏠</span><span class="tab-txt">ホーム</span>
+      </button>
+      <button class="tab" data-tab="search">
+        <span class="tab-ico">🔍</span><span class="tab-txt">さがす</span>
+      </button>
+      <button class="tab" data-tab="add">
+        <span class="tab-ico">✚</span><span class="tab-txt">追加</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- 読み込み中オーバーレイ -->
+  <div id="loading" class="loading hidden"><div class="spinner"></div></div>
+  <!-- トースト通知 -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
