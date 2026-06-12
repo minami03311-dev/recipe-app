@@ -31,6 +31,7 @@ async function init() {
   handleSession(data.session);
 
   bindEvents();
+  initGoogleSignIn();
   registerServiceWorker();
 }
 
@@ -91,6 +92,46 @@ function bindEvents() {
 }
 
 /* ---------- 認証 ---------- */
+
+// Googleの「アカウントをタップ」ボタン（文字入力なし＝ホーム画面アプリでもOK）
+let googleInited = false;
+function initGoogleSignIn() {
+  // GIS（Google Identity Services）の読み込みを待つ
+  if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+    if (!googleInited) setTimeout(initGoogleSignIn, 200);
+    return;
+  }
+  if (googleInited) return;
+  googleInited = true;
+
+  window.google.accounts.id.initialize({
+    client_id: window.GOOGLE_CLIENT_ID,
+    callback: onGoogleCredential,
+    use_fedcm_for_prompt: true,
+  });
+  window.google.accounts.id.renderButton($("g-signin"), {
+    type: "standard",
+    theme: "outline",
+    size: "large",
+    shape: "pill",
+    text: "continue_with",
+    logo_alignment: "center",
+    width: 280,
+    locale: "ja",
+  });
+}
+
+async function onGoogleCredential(resp) {
+  showLoading(true);
+  const { error } = await supa.auth.signInWithIdToken({
+    provider: "google",
+    token: resp.credential,
+  });
+  showLoading(false);
+  if (error) toast("ログインに失敗：" + error.message);
+}
+
+// 予備：従来のリダイレクト方式（Safari/PC向けフォールバック）
 async function login() {
   const redirectTo = window.location.href.split("#")[0];
   const { error } = await supa.auth.signInWithOAuth({

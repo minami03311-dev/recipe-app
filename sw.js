@@ -1,5 +1,7 @@
-// レシピ帖 Service Worker（アプリの外枠をキャッシュして起動を速く・オフラインでも開けるように）
-const CACHE = "recipe-cho-v1";
+// レシピ帖 Service Worker
+// 方針：オンライン時は常に最新を取得（network-first）、オフライン時だけ保存版を使う。
+// これで「更新したのにスマホに反映されない」問題を防ぐ。
+const CACHE = "recipe-cho-v2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -27,19 +29,20 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
-  // Supabase などの通信・自分のサイト以外は素通り（常に最新を取得）
+  // 自分のサイト以外（Supabase・Googleなど）の通信は素通り
   if (e.request.method !== "GET" || url.origin !== location.origin) return;
 
-  // 静的ファイルはキャッシュ優先（無ければ取得してキャッシュ）
+  // network-first：まずネットから最新を取り、取れたらキャッシュも更新。
+  // 取れない（オフライン）ときだけ保存版を返す。
   e.respondWith(
-    caches.match(e.request).then(
-      (hit) =>
-        hit ||
-        fetch(e.request).then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(e.request, copy));
-          return res;
-        }).catch(() => caches.match("./index.html"))
-    )
+    fetch(e.request)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(e.request, copy));
+        return res;
+      })
+      .catch(() =>
+        caches.match(e.request).then((hit) => hit || caches.match("./index.html"))
+      )
   );
 });

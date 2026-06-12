@@ -70,6 +70,8 @@ input, textarea, button { font-family: inherit; font-size: inherit; color: inher
   transition: transform .08s ease, box-shadow .2s ease;
 }
 .btn-google:active { transform: scale(.98); }
+.g-signin { display: flex; justify-content: center; min-height: 44px; }
+.login-fallback { display: inline-block; margin-top: 16px; color: var(--text-muted); font-size: 12.5px; }
 .login-note { margin-top: 18px; font-size: 12px; color: var(--text-muted); }
 
 /* ===== アプリ枠 ===== */
